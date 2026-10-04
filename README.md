@@ -43,87 +43,31 @@ Hệ thống tính toán và đối chiếu đồng thời **8 chỉ số đo l�
 
 ---
 
-## 📁 CẤU TRÚC THƯ MỤC DỰ ÁN
+## 💻 HƯỚNG DẪN CÀI ĐẶT & CHẠY LOCAL (MÁY CÁ NHÂN)
 
-```text
-├── app.py                      # Mã nguồn ứng dụng web chính (Streamlit Dashboard)
-├── requirements.txt            # Danh sách thư viện phụ thuộc
-├── README.md                   # Hướng dẫn chi tiết sử dụng & deploy
-├── HOSE_2020_2023_in.csv       # File dữ liệu giao dịch các mã HOSE (2020 - 2023)
-└── NHOM_3_CHIEN_LUOC_DAU_TU_V4 (FINAL).ipynb # Notebook nghiên cứu gốc
-```
-
----
-
-## 💻 HƯỚNG DẪN CÀI ĐẶT & CHẠY LOCAL (MÁY TÍNH CÁ NHÂN)
-
-### Bước 1: Chuẩn bị môi trường Python
-Yêu cầu Python phiên bản `3.9` trở lên. Mở Terminal / PowerShell và di chuyển vào thư mục dự án:
 ```bash
-cd "đường_dẫn_tới_thư_mục_dự_án"
-```
-
-### Bước 2: Tạo và kích hoạt môi trường ảo (Khuyến nghị)
-- **Trên Windows (PowerShell):**
-  ```powershell
-  python -m venv venv
-  .\venv\Scripts\Activate.ps1
-  ```
-- **Trên macOS / Linux:**
-  ```bash
-  python3 -m venv venv
-  source venv/bin/activate
-  ```
-
-### Bước 3: Cài đặt các thư viện phụ thuộc
-```bash
-pip install --upgrade pip
+# 1. Cài đặt các thư viện
 pip install -r requirements.txt
-```
 
-### Bước 4: Khởi chạy Web App
-```bash
+# 2. Khởi chạy Web App
 streamlit run app.py
 ```
-Trình duyệt sẽ tự động mở địa chỉ: `http://localhost:8501`
+Ứng dụng sẽ tự động mở trên trình duyệt tại địa chỉ `http://localhost:8501`.
 
 ---
 
-## 🚀 HƯỚNG DẪN ĐẨY LÊN GITHUB & DEPLOY MIỄN PHÍ TRÊN STREAMLIT CLOUD
+## 🚀 HƯỚNG DẪN DEPLOY MIỄN PHÍ TRÊN STREAMLIT CLOUD
 
-### Bước 1: Khởi tạo và Đẩy code lên GitHub
-1. Tạo một tài khoản trên [GitHub.com](https://github.com) (nếu chưa có).
-2. Tạo một Repository mới trên GitHub (ví dụ đặt tên: `qldmdt-nhom3-quant`).
-3. Mở terminal tại thư mục dự án và chạy các lệnh:
+1. **Đẩy code lên GitHub**:
    ```bash
    git init
    git add app.py requirements.txt README.md HOSE_2020_2023_in.csv
-   git commit -m "Khoi tao web app kiem dinh chien luoc dinh luong Streamlit"
+   git commit -m "Deploy streamlit quantitative backtest app"
    git branch -M main
-   git remote add origin https://github.com/<tai-khoan-github-cua-ban>/qldmdt-nhom3-quant.git
+   git remote add origin https://github.com/<tai-khoan-cua-ban>/<ten-repo>.git
    git push -u origin main
    ```
-
-### Bước 2: Deploy lên Streamlit Community Cloud
-1. Truy cập vào **[share.streamlit.io](https://share.streamlit.io)** và đăng nhập bằng tài khoản GitHub của bạn.
-2. Nhấn nút **"New app"** (hoặc "Create app").
-3. Điền các thông tin:
-   - **Repository**: Chọn repo vừa tạo (`<tai-khoan-github-cua-ban>/qldmdt-nhom3-quant`)
-   - **Branch**: `main`
-   - **Main file path**: `app.py`
-4. Nhấn **"Deploy!"**.
-5. Đợi 1 – 2 phút để hệ thống tự động cài đặt thư viện từ `requirements.txt` và khởi chạy web app.
-6. Sau khi hoàn tất, bạn sẽ nhận được đường link web app công khai (URL dạng: `https://<ten-ung-dung>.streamlit.app`) để chia sẻ và nộp bài.
-
----
-
-## 💡 ĐẶC ĐIỂM NỔI BẬT CỦA WEB APP
-
-- **Tự động nhận diện dữ liệu**: Khi mở app, hệ thống tự động tải file `HOSE_2020_2023_in.csv` có sẵn, người dùng không cần thao tác upload thủ công lại.
-- **Tùy biến tham số linh hoạt**: Cho phép điều chỉnh trọng số 4 nhân tố (Trend, Momentum, Risk, Liquidity), ngưỡng RSI lọc quá mua, ngưỡng tương quan đa dạng hóa danh mục, chu kỳ SMA định thời điểm và lãi suất phi rủi ro $R_f$.
-- **Biểu đồ trực quan hóa cao cấp (Plotly)**:
-  - Đường phát triển vốn (Interactive Equity Curve) tương tác phóng to/thu nhỏ (Zoom/Pan).
-  - Biểu đồ sụt giảm vốn (Underwater Drawdown Chart).
-  - Vùng tín hiệu thị trường (Invested vs 100% Cash Zone).
-  - Ma trận tương quan chéo (Correlation Heatmap).
-- **Xuất dữ liệu một chạm**: Cho phép tải xuống toàn bộ bảng đối chiếu 8 chỉ số của các chiến lược dưới dạng file `.csv` chuẩn UTF-8.
+2. **Deploy lên Streamlit Cloud**:
+   - Truy cập **[share.streamlit.io](https://share.streamlit.io)** và đăng nhập bằng GitHub.
+   - Nhấn **"New app"** $\rightarrow$ Chọn Repository vừa tạo $\rightarrow$ Branch: `main` $\rightarrow$ Main file path: `app.py`.
+   - Nhấn nút **"Deploy!"** và đợi hệ thống chạy.
