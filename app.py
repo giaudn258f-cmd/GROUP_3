@@ -448,7 +448,9 @@ def run_simulation(px_df, weights_dict, signal_series=None, initial_capital=100_
 def run_vnindex_simulation(benchmark_df, start_date, end_date, initial_capital=100_000_000):
     """Mô phỏng đường vốn cho chỉ số VNINDEX (không trừ phí giao dịch cổ phiếu)."""
     sub_b = benchmark_df.set_index("date")["close"].sort_index()
-    sub_b = sub_b.loc[start_date:end_date].dropna()
+    start_dt = pd.to_datetime(start_date)
+    end_dt = pd.to_datetime(end_date)
+    sub_b = sub_b.loc[(sub_b.index >= start_dt) & (sub_b.index <= end_dt)].dropna()
     if sub_b.empty:
         return pd.Series(dtype=float)
     eq = initial_capital * (sub_b / sub_b.iloc[0])
@@ -468,7 +470,12 @@ data_option = st.sidebar.radio(
     index=0
 )
 
-csv_path = "HOSE_2020_2023_in.csv"
+# Đường dẫn an toàn trên mọi môi trường (Local và Streamlit Cloud)
+base_dir = os.path.dirname(os.path.abspath(__file__))
+csv_path = os.path.join(base_dir, "HOSE_2020_2023_in.csv")
+if not os.path.exists(csv_path):
+    csv_path = "HOSE_2020_2023_in.csv"
+
 uploaded_file = None
 
 if data_option == "Tải lên file CSV mới":
@@ -493,18 +500,28 @@ stock_full = raw_df[raw_df["ticker"] != "VNINDEX"].copy()
 min_date = raw_df["date"].min().date()
 max_date = raw_df["date"].max().date()
 
+# Hàm kẹp ngày an toàn chống lỗi StreamlitValueBelowMinError / StreamlitValueAboveMaxError
+def clamp_date(target, min_d, max_d):
+    return max(min_d, min(max_d, target))
+
+# Tính các mốc ngày mặc định an toàn nằm trong [min_date, max_date]
+default_train_start = clamp_date(datetime(2020, 1, 1).date(), min_date, max_date)
+default_train_end = clamp_date(datetime(2021, 12, 31).date(), min_date, max_date)
+default_test_start = clamp_date(datetime(2022, 1, 1).date(), min_date, max_date)
+default_test_end = clamp_date(datetime(2022, 12, 31).date(), min_date, max_date)
+
 # Section 2: Phân chia Train - Test
 st.sidebar.subheader("2. Phân Chia Thời Gian")
 col_s1, col_s2 = st.sidebar.columns(2)
-train_start = col_s1.date_input("Train Bắt đầu", datetime(2020, 1, 1).date(), min_value=min_date, max_value=max_date)
-train_end = col_s2.date_input("Train Kết thúc", datetime(2021, 12, 31).date(), min_value=min_date, max_value=max_date)
+train_start = col_s1.date_input("Train Bắt đầu", default_train_start, min_value=min_date, max_value=max_date)
+train_end = col_s2.date_input("Train Kết thúc", default_train_end, min_value=min_date, max_value=max_date)
 
 col_s3, col_s4 = st.sidebar.columns(2)
-test_start = col_s3.date_input("Test Bắt đầu", datetime(2022, 1, 1).date(), min_value=min_date, max_value=max_date)
-test_end = col_s4.date_input("Test Kết thúc", datetime(2022, 12, 31).date(), min_value=min_date, max_value=max_date)
+test_start = col_s3.date_input("Test Bắt đầu", default_test_start, min_value=min_date, max_value=max_date)
+test_end = col_s4.date_input("Test Kết thúc", default_test_end, min_value=min_date, max_value=max_date)
 
 if train_end >= test_start:
-    st.sidebar.error("Lưu ý: Thời gian Train phải trước thời gian Test để chống Look-ahead Bias!")
+    st.sidebar.warning("Lưu ý: Thời gian Train nên trước thời gian Test để chống Look-ahead Bias!")
 
 # Section 3: Cấu hình Lựa chọn Cổ phiếu
 st.sidebar.subheader("3. Bộ Lọc Cổ Phiếu")
@@ -547,6 +564,14 @@ sma_timing_window = st.sidebar.number_input("Chu kỳ SMA Market Timing (phiên)
 # Chia dữ liệu
 train_stocks = stock_full[(stock_full["date"] >= pd.to_datetime(train_start)) & (stock_full["date"] <= pd.to_datetime(train_end))].copy()
 test_stocks = stock_full[(stock_full["date"] >= pd.to_datetime(test_start)) & (stock_full["date"] <= pd.to_datetime(test_end))].copy()
+
+if train_stocks.empty:
+    st.error("Tập Train không có dữ liệu giao dịch! Vui lòng chọn lại khoảng thời gian Train.")
+    st.stop()
+
+if test_stocks.empty:
+    st.error("Tập Test không có dữ liệu giao dịch! Vui lòng chọn lại khoảng thời gian Test.")
+    st.stop()
 
 # Tính chỉ báo
 indicators_df, px_train_all, ind_err = compute_indicators_df(train_stocks)
